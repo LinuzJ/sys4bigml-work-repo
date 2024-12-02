@@ -5,8 +5,8 @@ WORKDIR /app
 # System deps for Whisper
 RUN apt-get update && apt-get install -y \
     ffmpeg \
-    libsndfile1 \
-    && rm -rf /var/lib/apt/lists/*
+    libsndfile1 
+
 
 COPY requirements.txt .
 
