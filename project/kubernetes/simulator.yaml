@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: simulator
-          image: linuzj/edge-offload:simulator:latest
+          image: linuzj/edge-offload:simulator
           env:
             - name: EDGE_COMPUTE_HOST
               value: "edge-compute-service"

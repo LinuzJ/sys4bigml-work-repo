@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: edge-compute
-          image: linuzj/edge-offload:simulator:latest
+          image: linuzj/edge-offload:edge-compute
           ports:
             - containerPort: 8081
           resources:
