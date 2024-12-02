@@ -9,6 +9,10 @@ BUFFER_SIZE = int(os.getenv("BUFFER_SIZE", "4096"))
 AUDIO_FOLDER = os.getenv("AUDIO_PATH", "/app/audio")
 
 
+class SendingAudioException(Exception):
+    pass
+
+
 def send_audio_file(file_path):
     """Send a single audio file to the edge-compute container."""
     try:
@@ -22,7 +26,7 @@ def send_audio_file(file_path):
 
             print(f"File '{file_path}' sent successfully.")
     except Exception as e:
-        print(f"Failed to send file '{file_path}': {e}")
+        raise SendingAudioException(f"Failed to send file '{file_path}': {e}")
 
 
 def main():
@@ -43,10 +47,15 @@ def main():
     print(
         f"Found {len(files)} audio file(s) in '{AUDIO_FOLDER}'. Sending to edge-compute..."
     )
-
-    for file_name in files:
-        file_path = os.path.join(AUDIO_FOLDER, file_name)
-        send_audio_file(file_path)
+    while True:
+        for file_name in files:
+            try:
+                file_path = os.path.join(AUDIO_FOLDER, file_name)
+                send_audio_file(file_path)
+            except SendingAudioException as e:
+                print(f"Error while sending files: {e}")
+            except Exception as unknown_e:
+                print(f"Unknown Error while sending files: {unknown_e}")
 
 
 if __name__ == "__main__":

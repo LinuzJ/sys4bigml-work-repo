@@ -1,8 +1,10 @@
 import time
 import numpy as np
+import whisper
+
 from queue import Queue
 from sklearn.linear_model import LinearRegression
-from transcribe_audio import handle_audio
+from transcribe_audio import handle_audio, AudioTranscriptionException
 from text_analysis import keyword_in_text
 
 
@@ -19,7 +21,7 @@ class PredictiveOffloading:
         - threshold (float): Threshold time to decide offloading.
         """
         self.queue_size = queue_size
-
+        self.whisper_model = whisper.load_model("tiny")
         self.local_queue = Queue(maxsize=queue_size)
         self.cloud_queue = Queue(maxsize=queue_size)
 
@@ -60,25 +62,28 @@ class PredictiveOffloading:
             return None
         return model.predict(np.array([[size]]))[0]
 
-    def execute_local(self, raw_audio_file: bytes) -> float:
+    def execute_local(self, raw_audio_file: bytes, whisper_model) -> float:
         """
         Simulate execution of the application locally and return execution time.
         """
         start = time.time()
-
-        transcription = handle_audio(raw_audio_file)
-        occurences = keyword_in_text(transcription, KEYWORD)
+        occurences = 0
+        try:
+            transcription = handle_audio(raw_audio_file, whisper_model=whisper_model)
+            occurences = keyword_in_text(transcription, KEYWORD)
+        except AudioTranscriptionException as ae:
+            print(f"Something went wrong while transcribing {ae}")
 
         print(occurences)
 
         end = time.time()
         return end - start
 
-    def execute_cloud(self, raw_audio_file: bytes) -> float:
+    def execute_cloud(self, raw_audio_file: bytes, whisper_model) -> float:
         """
         Simulate execution of the application on the cloud and return execution time.
         """
-        execution_time = self.execute_local(raw_audio_file) * 0.8
+        execution_time = self.execute_local(raw_audio_file, whisper_model) * 0.8
         return execution_time
 
     def handle_audiofile(self, raw_audio_file: str):
@@ -90,8 +95,8 @@ class PredictiveOffloading:
 
         if not self.local_queue.full() or not self.cloud_queue.full():
             # One or both queues are not full; execute locally and cloud for initial data
-            t_l = self.execute_local(raw_audio_file)
-            t_c = self.execute_cloud(raw_audio_file)
+            t_l = self.execute_local(raw_audio_file, self.whisper_model)
+            t_c = self.execute_cloud(raw_audio_file, self.whisper_model)
             self.update_queue(self.local_queue, t_l, size)
             self.update_queue(self.cloud_queue, t_c, size)
             print(f"Executed locally: {t_l:.2f} seconds, on cloud: {t_c:.2f} seconds")
@@ -105,10 +110,10 @@ class PredictiveOffloading:
 
         # If predicted local is faster than cloud -> execute locally, else on cloud
         if predicted_time_l < predicted_time_c:
-            t_l = self.execute_local(raw_audio_file)
+            t_l = self.execute_local(raw_audio_file, self.whisper_model)
             self.update_queue(self.local_queue, t_l, size)
             print(f"Executed locally: {t_l:.2f} seconds")
         else:
-            t_c = self.execute_cloud(raw_audio_file)
+            t_c = self.execute_cloud(raw_audio_file, self.whisper_model)
             self.update_queue(self.cloud_queue, t_c, size)
             print(f"Executed on cloud: {t_c:.2f} seconds")
