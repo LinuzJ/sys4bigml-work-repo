@@ -56,7 +56,7 @@ class PredictiveOffloading:
         Predict the time using a given model for a specified data size.
         Returns None if the model is not trained.
         """
-        if len(model.coef_) == 0:
+        if not hasattr(model, "coef_"):
             return None
         return model.predict(np.array([[size]]))[0]
 
@@ -90,8 +90,8 @@ class PredictiveOffloading:
 
         if not self.local_queue.full() or not self.cloud_queue.full():
             # One or both queues are not full; execute locally and cloud for initial data
-            t_l = self.execute_local(size)
-            t_c = self.execute_cloud(size)
+            t_l = self.execute_local(raw_audio_file)
+            t_c = self.execute_cloud(raw_audio_file)
             self.update_queue(self.local_queue, t_l, size)
             self.update_queue(self.cloud_queue, t_c, size)
             print(f"Executed locally: {t_l:.2f} seconds, on cloud: {t_c:.2f} seconds")
