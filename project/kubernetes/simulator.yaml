@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simulator
+  labels:
+    app: simulator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: simulator
+  template:
+    metadata:
+      labels:
+        app: simulator
+    spec:
+      containers:
+        - name: simulator
+          image: linuzj/edge-offload:simulator:latest
+          env:
+            - name: EDGE_COMPUTE_HOST
+              value: "edge-compute-service"
+            - name: EDGE_COMPUTE_PORT
+              value: "8081"
+          volumeMounts:
+            - name: audio-volume
+              mountPath: /app/audio
+      volumes:
+        - name: audio-volume
+          hostPath:
+            path: /Users/linusjern/Uni/advanced-topics-in-software-systems/project/audio
+            type: Directory
