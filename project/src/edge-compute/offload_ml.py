@@ -100,7 +100,7 @@ class PredictiveOffloading:
         self.logger.info("Occurrences of '%s': %s", KEYWORD, occurences)
         end = time.time()
         execution_time = end - start
-        self.logger.info("Local execution time: %s seconds")
+        self.logger.info("Local execution time: %s seconds", execution_time)
         return execution_time
 
     def execute_cloud(self, raw_audio_file: bytes) -> float:

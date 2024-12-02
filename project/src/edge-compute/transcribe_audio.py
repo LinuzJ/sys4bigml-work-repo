@@ -38,7 +38,7 @@ def transcribe_audio(file_path: str, model) -> str:
     print(f"Transcribing audio file: {file_path}")
     results = ""
     try:
-        text = model.transcribe(file_path)
+        text = model.transcribe(file_path, fp16=False)
         results = text["text"]
     except Exception as e:
         raise AudioTranscriptionException(f"Error while transcribing: {e}") from e
