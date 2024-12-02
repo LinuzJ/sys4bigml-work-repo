@@ -22,11 +22,15 @@ spec:
               value: "edge-compute-service"
             - name: EDGE_COMPUTE_PORT
               value: "8081"
+            - name: EDGE_COMPUTE_PORT
+              value: "8081"
+            - name: AUDIO_PATH
+              value: "/app/audio"
           volumeMounts:
             - name: audio-volume
               mountPath: /app/audio
       volumes:
         - name: audio-volume
           hostPath:
-            path: /Users/linusjern/Uni/advanced-topics-in-software-systems/project/audio
+            path: /audio
             type: Directory

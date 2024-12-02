@@ -3,10 +3,9 @@ import whisper
 import os
 from offload_ml import PredictiveOffloading
 
-# Configuration
-HOST = "0.0.0.0"
-PORT = 8081
-BUFFER_SIZE = 4096
+HOST = os.getenv("INTERNAL_HOST", "0.0.0.0")
+PORT = int(os.getenv("EXPOSE_PORT", "8081"))
+BUFFER_SIZE = int(os.getenv("BUFFER_SIZE", "4096"))
 
 
 def start_tcp_server(host, port):

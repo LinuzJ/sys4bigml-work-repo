@@ -1,10 +1,12 @@
 import socket
 import os
 
-EDGE_COMPUTE_HOST = "edge-compute"
-EDGE_COMPUTE_PORT = 8081
-BUFFER_SIZE = 4096
-AUDIO_FOLDER = "./audio"
+EDGE_COMPUTE_HOST = os.getenv("EDGE_COMPUTE_HOST", "edge-compute-service")
+EDGE_COMPUTE_PORT = int(os.getenv("EDGE_COMPUTE_PORT", "8081"))
+
+BUFFER_SIZE = int(os.getenv("BUFFER_SIZE", "4096"))
+
+AUDIO_FOLDER = os.getenv("AUDIO_PATH", "/app/audio")
 
 
 def send_audio_file(file_path):

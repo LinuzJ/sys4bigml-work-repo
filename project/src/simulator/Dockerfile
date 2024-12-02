@@ -4,7 +4,4 @@ WORKDIR /app
 
 COPY . .
 
-
-RUN mkdir -p /app/audio_files
-
 CMD ["python", "simulator.py"]
