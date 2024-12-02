@@ -2,8 +2,8 @@ import time
 import numpy as np
 from queue import Queue
 from sklearn.linear_model import LinearRegression
-from utils.transcribe_audio import handle_audio
-from utils.text_analysis import keyword_in_text
+from transcribe_audio import handle_audio
+from text_analysis import keyword_in_text
 
 
 KEYWORD = "police"
