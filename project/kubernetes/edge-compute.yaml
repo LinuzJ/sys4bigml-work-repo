@@ -28,10 +28,7 @@ spec:
               cpu: "1"
           env:
             - name: CLOUD_URL
-              valueFrom:
-                configMapKeyRef:
-                  name: edge-compute-config
-                  key: CLOUD_URL
+              value: "http://cloud-compute-service:8080"
 ---
 apiVersion: v1
 kind: Service

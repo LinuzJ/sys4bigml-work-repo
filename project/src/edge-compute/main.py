@@ -30,10 +30,12 @@ def start_tcp_server(host, port):
         queue_size=5, whisper_model=whisper_model, logger=logger
     )
 
-    cloud_url = os.getenv("CLOUD_URL", "NAN")
+    cloud_url = os.getenv("CLOUD_URL", "http://cloud-compute-service:8080")
 
-    if cloud_url == "NAN":
-        raise InvalidEnvException("No CLOUD_URL provided...exiting.")
+    if not cloud_url.startswith("http://") and not cloud_url.startswith("https://"):
+        raise InvalidEnvException(
+            "Invalid CLOUD_URL. Ensure it is properly formatted as a URL."
+        )
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
         server_socket.bind((host, port))
