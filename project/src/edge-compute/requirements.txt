@@ -2,3 +2,4 @@ openai-whisper
 scikit-learn
 numpy
 setuptools-rust
+prometheus-client

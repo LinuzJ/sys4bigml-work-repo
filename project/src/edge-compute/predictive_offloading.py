@@ -1,12 +1,18 @@
 import time
+import requests
 import numpy as np
 import whisper
 from queue import Queue
 from sklearn.linear_model import LinearRegression
 from transcribe_audio import handle_audio, AudioTranscriptionException
 from text_analysis import keyword_in_text
+from prometheus_client import Counter, Histogram, Gauge
 
 KEYWORD = "police"
+
+
+class CloudOffloadingException(Exception):
+    pass
 
 
 class PredictiveOffloading:
@@ -30,6 +36,25 @@ class PredictiveOffloading:
         self.local_model = LinearRegression()
         self.cloud_model = LinearRegression()
 
+        self.local_decisions = Counter(
+            "local_decisions", "Number of tasks executed locally"
+        )
+        self.cloud_decisions = Counter(
+            "cloud_decisions", "Number of tasks offloaded to the cloud"
+        )
+        self.local_queue_time = Histogram(
+            "local_queue_time", "Time spent in the local queue"
+        )
+        self.cloud_queue_time = Histogram(
+            "cloud_queue_time", "Time spent in the cloud queue"
+        )
+        self.local_queue_size = Gauge(
+            "local_queue_size", "Current size of the local queue"
+        )
+        self.cloud_queue_size = Gauge(
+            "cloud_queue_size", "Current size of the cloud queue"
+        )
+
     def _default_logger(self):
         """Create a default logger if none is passed."""
         import logging
@@ -41,7 +66,7 @@ class PredictiveOffloading:
         )
         return logging.getLogger("PredictiveOffloadingDefault")
 
-    def update_queue(self, queue: Queue, time: float, size: int):
+    def update_queue(self, queue: Queue, time: float, size: int, is_local: bool):
         """
         Update a FIFO queue with new data (time, size).
         """
@@ -50,6 +75,13 @@ class PredictiveOffloading:
             queue.get()
         queue.put((time, size))
         self.logger.debug("Queue updated. Current size: %s.", queue.qsize())
+
+        if is_local:
+            self.local_queue_time.observe(time)
+            self.local_queue_size.set(queue.qsize())
+        else:
+            self.cloud_queue_time.observe(time)
+            self.cloud_queue_size.set(queue.qsize())
 
     def train_models(self):
         """
@@ -100,22 +132,45 @@ class PredictiveOffloading:
         self.logger.info("Occurrences of '%s': %s", KEYWORD, occurences)
         end = time.time()
         execution_time = end - start
+
+        self.local_decisions.inc()
+
         self.logger.info("Local execution time: %s seconds", execution_time)
         return execution_time
 
-    def execute_cloud(self, raw_audio_file: bytes) -> float:
+    def execute_cloud(self, raw_audio_file: bytes, cloud_url: str) -> float:
         """
         Simulate execution of the application on the cloud and return execution time.
         """
-        self.logger.info("Executing task on the cloud...")
-        execution_time = self.execute_local(raw_audio_file) * 0.8
+        self.logger.info("Offloading task to the cloud with turbo model...")
+
+        headers = {"Content-Type": "application/octet-stream"}
+
+        start = time.time()
+        try:
+            response = requests.post(
+                cloud_url, data=raw_audio_file, headers=headers, timeout=100
+            )
+            response.raise_for_status()
+            result = response.json()
+            self.logger.info("Cloud transcription result: %s", result["text"])
+        except requests.exceptions.RequestException as e:
+            self.logger.error("Error during cloud transcription: %s", e)
+            raise CloudOffloadingException(
+                "Error during cloud transcription: %s", e
+            ) from e
+
+        end = time.time()
+        execution_time = end - start
+
+        self.cloud_decisions.inc()
+
         self.logger.info(
-            "Cloud execution time (simulated): %s seconds",
-            execution_time,
+            "Cloud execution time with turbo model: %.2f seconds", execution_time
         )
         return execution_time
 
-    def handle_audiofile(self, raw_audio_file: str):
+    def handle_audiofile(self, raw_audio_file: str, cloud_url: str):
         """
         Handle an incoming application request with input size `size`.
         """
@@ -126,9 +181,9 @@ class PredictiveOffloading:
         if not self.local_queue.full() or not self.cloud_queue.full():
             # One or both queues are not full; execute locally and cloud for initial data
             t_l = self.execute_local(raw_audio_file)
-            t_c = self.execute_cloud(raw_audio_file)
-            self.update_queue(self.local_queue, t_l, size)
-            self.update_queue(self.cloud_queue, t_c, size)
+            t_c = self.execute_cloud(raw_audio_file, cloud_url)
+            self.update_queue(self.local_queue, t_l, size, is_local=True)
+            self.update_queue(self.cloud_queue, t_c, size, is_local=False)
             self.logger.info(
                 "Executed locally: %s seconds, on cloud: %s seconds", t_l, t_c
             )
@@ -144,9 +199,9 @@ class PredictiveOffloading:
         # If predicted local is faster than cloud -> execute locally, else on cloud
         if predicted_time_l < predicted_time_c:
             t_l = self.execute_local(raw_audio_file)
-            self.update_queue(self.local_queue, t_l, size)
+            self.update_queue(self.local_queue, t_l, size, is_local=True)
             self.logger.info("Executed locally: %s seconds", t_l)
         else:
-            t_c = self.execute_cloud(raw_audio_file)
-            self.update_queue(self.cloud_queue, t_c, size)
+            t_c = self.execute_cloud(raw_audio_file, cloud_url)
+            self.update_queue(self.cloud_queue, t_c, size, is_local=False)
             self.logger.info("Executed on cloud: %s seconds", t_c)

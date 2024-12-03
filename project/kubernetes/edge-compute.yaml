@@ -26,6 +26,12 @@ spec:
             limits:
               memory: "2Gi"
               cpu: "1"
+          env:
+            - name: CLOUD_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: edge-compute-config
+                  key: CLOUD_URL
 ---
 apiVersion: v1
 kind: Service
