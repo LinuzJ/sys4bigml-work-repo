@@ -149,7 +149,7 @@ class PredictiveOffloading:
         start = time.time()
         try:
             response = requests.post(
-                cloud_url, data=raw_audio_file, headers=headers, timeout=100
+                cloud_url, data=raw_audio_file, headers=headers, timeout=120
             )
             response.raise_for_status()
             result = response.json()
