@@ -69,6 +69,6 @@ def handle_audio(
 
     transcription = transcribe_audio(audio_file_path, whisper_model)
 
-    remove_audio_file(filename)
+    remove_audio_file(audio_file_path)
 
     return transcription
