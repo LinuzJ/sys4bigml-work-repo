@@ -52,7 +52,9 @@ spec:
   selector:
     app: prometheus
   ports:
-    - protocol: TCP
+    - name: http
+      protocol: TCP
       port: 9090
       targetPort: 9090
+      nodePort: 30290
   type: NodePort

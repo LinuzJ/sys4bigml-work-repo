@@ -26,7 +26,7 @@ def start_tcp_server(host, port):
     logger.info("Starting TCP server on %s:%s...", host, port)
     whisper_model = whisper.load_model("tiny")
     predictive_offloading_ml_client = PredictiveOffloading(
-        queue_size=5, whisper_model=whisper_model, logger=logger
+        queue_size=10, whisper_model=whisper_model, logger=logger
     )
 
     cloud_url = os.getenv("CLOUD_URL", "http://cloud-compute-service:8080")

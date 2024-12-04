@@ -19,6 +19,7 @@ spec:
           image: linuzj/edge-offload:edge-compute
           ports:
             - containerPort: 8081
+            - containerPort: 8000 # Prometheus metrics
           resources:
             requests:
               memory: "1Gi"
@@ -28,7 +29,7 @@ spec:
               cpu: "1"
           env:
             - name: CLOUD_URL
-              value: "http://cloud-compute-service:8080"
+              value: "https://edge-offload-cloud-384230659213.europe-north1.run.app"
 ---
 apiVersion: v1
 kind: Service
@@ -43,4 +44,9 @@ spec:
     - protocol: TCP
       port: 8081
       targetPort: 8081
+      name: http
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+      name: metrics
   type: ClusterIP
