@@ -53,6 +53,10 @@ def save_transcription(transcription, transcription_dir, filename="transcription
     return transcription_path
 
 
+def remove_audio_file(filename: str):
+    os.remove(filename)
+
+
 def handle_audio(
     raw_audio_data: bytes, whisper_model=None, filename="audio.wav"
 ) -> str:
@@ -64,5 +68,7 @@ def handle_audio(
     audio_file_path = save_audio_file(raw_audio_data, OUTPUT_DIR, filename)
 
     transcription = transcribe_audio(audio_file_path, whisper_model)
+
+    remove_audio_file(filename)
 
     return transcription

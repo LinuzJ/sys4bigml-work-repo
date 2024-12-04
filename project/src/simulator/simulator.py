@@ -49,6 +49,9 @@ def main():
     )
     while True:
         for file_name in files:
+            if not file_name[-3:] == "wav":
+                print("Incorrect file format for file: %s", file_name)
+                continue
             try:
                 file_path = os.path.join(AUDIO_FOLDER, file_name)
                 send_audio_file(file_path)

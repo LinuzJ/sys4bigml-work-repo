@@ -5,7 +5,6 @@ import logging
 from predictive_offloading import PredictiveOffloading, CloudOffloadingException
 from prometheus_client import start_http_server
 
-# Configure logging
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s [%(levelname)s] %(message)s",

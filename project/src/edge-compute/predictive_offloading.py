@@ -125,6 +125,7 @@ class PredictiveOffloading:
             transcription = handle_audio(
                 raw_audio_file, whisper_model=self.whisper_model
             )
+            self.logger.info("Local file transcribed: %s", transcription)
             occurences = keyword_in_text(transcription, KEYWORD)
         except AudioTranscriptionException as ae:
             self.logger.error(f"Error during transcription: {ae}")
