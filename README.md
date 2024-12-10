@@ -4,6 +4,8 @@
 
 This is a project that evaluates the feasibility of implementing a dynamic predictive edge offloading algorithm using Kubernetes and GCP. The core idea is to predict the latency and overall execution time of tasks both locally and in the cloud, and then select the optimal execution choice, that is edge or cloud, to reduce total system latency and improve reliability.
 
+More details and discussion can be found in `log.md`.
+
 **Key Goals:**
 
 - Evaluate the performance increase and consistency of decision making by the model of a dynamic prediction offloading algorithm.
