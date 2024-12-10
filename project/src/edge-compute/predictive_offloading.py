@@ -5,7 +5,6 @@ import whisper
 from queue import Queue
 from sklearn.linear_model import LinearRegression
 from transcribe_audio import handle_audio, AudioTranscriptionException
-from text_analysis import keyword_in_text
 from prometheus_client import Counter, Histogram, Gauge
 
 KEYWORD = "police"
@@ -120,17 +119,14 @@ class PredictiveOffloading:
         """
         self.logger.info("Executing task locally...")
         start = time.time()
-        occurences = 0
         try:
             transcription = handle_audio(
                 raw_audio_file, whisper_model=self.whisper_model
             )
             self.logger.info("Local file transcribed: %s", transcription)
-            occurences = keyword_in_text(transcription, KEYWORD)
         except AudioTranscriptionException as ae:
             self.logger.error(f"Error during transcription: {ae}")
 
-        self.logger.info("Occurrences of '%s': %s", KEYWORD, occurences)
         end = time.time()
         execution_time = end - start
 

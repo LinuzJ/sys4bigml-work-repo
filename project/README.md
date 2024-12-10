@@ -20,9 +20,4 @@ This MVP is built using:
 
 #### Running
 
-To run locally, follow the proceeding steps:
-
-- minikube
-- mount to minikube VM
-- Cloudrun service
-- prometheus port forwarding to local machine (`kubectl port-forward service/prometheus 9090:9090`)
+To run locally, follow the steps in the root README:
